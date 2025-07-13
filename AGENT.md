@@ -71,3 +71,27 @@ This is a challenge project centered on authorization design. The auth layer sho
 - TypeScript for type safety
 - Playwright for E2E testing
 - ESLint + Prettier for code quality
+
+## Database Management
+
+**Pattern**: Use declarative schemas (`supabase/schemas/`) instead of imperative migrations where possible.
+
+### Key Commands
+
+```bash
+supabase db diff -f <migration_name>          # Generate migration from schema changes
+supabase migration up                         # Apply pending migrations locally
+supabase db push                              # Deploy to remote database
+supabase db dump > supabase/schemas/prod.sql  # Pull production schema
+supabase db reset --version <timestamp>       # Rollback for development
+```
+
+### Best Practices
+
+- Store table definitions in `supabase/schemas/` directory
+- Schema files run in lexicographic order (customize via `config.toml` if needed)
+- Always append new columns to avoid messy diffs
+- Use `supabase db diff` to generate migrations from schema changes
+- For complex entities (views, functions): edit in-place in schema files
+- DML operations and RLS policies still require traditional migrations
+- Never reset deployed migrations - use forward-only rollbacks for production

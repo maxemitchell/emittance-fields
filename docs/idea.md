@@ -8,32 +8,33 @@ In it's fully realized form, the field is more like a flow field simulation, wit
 
 ### Fields
 
-- id
-- width
-- height
-- owner_id
-- is_public
-- created_at
-- updated_at
+- `id`: UUID, primary key
+- `name`: text, not null
+- `description`: text, nullable
+- `width`: integer, not null, must be > 0 and <= 1000
+- `height`: integer, not null, must be > 0 and <= 1000
+- `background_color`: text, not null, default `#000000`
+- `is_public`: boolean, not null, default `false`
+- `owner_id`: UUID, not null, references `auth.users(id)`
+- `created_at`: timestamp with time zone, not null, default `now()`
+- `updated_at`: timestamp with time zone, not null, default `now()`
 
 ### Emitters
 
-- id
-- field_id
-- visual_state (jsonb)
-- created_at
-- updated_at
+- `id`: UUID, primary key
+- `field_id`: UUID, not null, references `fields(id)`
+- `x`: integer, not null, must be >= 0
+- `y`: integer, not null, must be >= 0
+- `color`: text, not null, default `#ffffff`, must match `^#[0-9A-Fa-f]{6}$`
+- `created_at`: timestamp with time zone, not null, default `now()`
+- `updated_at`: timestamp with time zone, not null, default `now()`
 
-### FieldCollaborators
+### Field Collaborators
 
-- id
-- field_id
-- user_id
-- role
-- created_at
-- updated_at
-
-### Users
-
-- id
-- username
+- `id`: UUID, primary key
+- `field_id`: UUID, not null, references `fields(id)`
+- `user_id`: UUID, not null, references `auth.users(id)`
+- `role`: enum (`viewer`, `editor`), not null, default `viewer`
+- `created_at`: timestamp with time zone, not null, default `now()`
+- `updated_at`: timestamp with time zone, not null, default `now()`
+- Unique constraint on (`field_id`, `user_id`)
