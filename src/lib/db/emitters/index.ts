@@ -1,5 +1,15 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import type { Database } from '../../../database.types';
+import { emitterStore } from '$lib/stores/emitters';
+
+export interface RealtimeSubscription {
+	channel: RealtimeChannel;
+	unsubscribe: () => void;
+}
+
+export interface RealtimeOptions {
+	onError?: (error: Error) => void;
+}
 
 // Types for the emitters table
 export type Emitter = Database['public']['Tables']['emitters']['Row'];
@@ -73,3 +83,83 @@ export const removeEmitter = async (
 	if (error) throw error;
 	return result;
 };
+
+export function subscribeToEmitters(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	options: RealtimeOptions = {}
+): RealtimeSubscription {
+	const channel = supabase
+		.channel(`emitters:${fieldId}`)
+		.on(
+			'postgres_changes',
+			{
+				event: 'INSERT',
+				schema: 'public',
+				table: 'emitters',
+				filter: `field_id=eq.${fieldId}`
+			},
+			(payload) => {
+				try {
+					const newEmitter = payload.new as Emitter;
+					emitterStore.handleRealtimePatch({
+						eventType: 'INSERT',
+						new: newEmitter
+					});
+				} catch (error) {
+					options.onError?.(error instanceof Error ? error : new Error('Failed to handle INSERT'));
+				}
+			}
+		)
+		.on(
+			'postgres_changes',
+			{
+				event: 'UPDATE',
+				schema: 'public',
+				table: 'emitters',
+				filter: `field_id=eq.${fieldId}`
+			},
+			(payload) => {
+				try {
+					const updatedEmitter = payload.new as Emitter;
+					emitterStore.handleRealtimePatch({
+						eventType: 'UPDATE',
+						new: updatedEmitter,
+						old: payload.old as Emitter
+					});
+				} catch (error) {
+					options.onError?.(error instanceof Error ? error : new Error('Failed to handle UPDATE'));
+				}
+			}
+		)
+		.on(
+			'postgres_changes',
+			{
+				event: 'DELETE',
+				schema: 'public',
+				table: 'emitters',
+				filter: `field_id=eq.${fieldId}`
+			},
+			(payload) => {
+				try {
+					const deletedEmitter = payload.old as Emitter;
+					emitterStore.handleRealtimePatch({
+						eventType: 'DELETE',
+						old: deletedEmitter
+					});
+				} catch (error) {
+					options.onError?.(error instanceof Error ? error : new Error('Failed to handle DELETE'));
+				}
+			}
+		);
+
+	// Subscribe to the channel
+	channel.subscribe();
+
+	return {
+		channel,
+		unsubscribe: () => {
+			supabase.removeChannel(channel);
+		}
+	};
+}

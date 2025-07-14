@@ -3,6 +3,8 @@ import { getField } from '$lib/db/fields';
 import { redirect, type Actions } from '@sveltejs/kit';
 import { deleteFieldAction, updateFieldAction } from '$lib/actions/fields';
 import { getFieldCollaborators } from '$lib/db/field-collaborators';
+import { getEmittersForField } from '$lib/db/emitters';
+import { getUserRole } from '$lib/stores/userRole';
 import {
 	addFieldCollaboratorAction,
 	removeFieldCollaboratorAction,
@@ -10,7 +12,7 @@ import {
 } from '$lib/actions/field-collaborators';
 import { withActionErrorHandling } from '$lib/action-middleware';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, params }) => {
+export const load: PageServerLoad = async ({ locals: { supabase, user }, params }) => {
 	const { id } = params;
 	const field = await getField(supabase, id);
 
@@ -18,9 +20,15 @@ export const load: PageServerLoad = async ({ locals: { supabase }, params }) => 
 		return redirect(303, '/');
 	}
 
-	const collaborators = await getFieldCollaborators(supabase, id);
+	const [collaborators, emitters] = await Promise.all([
+		getFieldCollaborators(supabase, id),
+		getEmittersForField(supabase, id)
+	]);
 
-	return { field, collaborators };
+	// Determine user role
+	const userRole = await getUserRole(supabase, user?.id, field);
+
+	return { field, collaborators, emitters, userRole };
 };
 
 export const actions: Actions = {

@@ -9,7 +9,7 @@
 	}>();
 </script>
 
-<div class="mx-auto w-full max-w-2xl rounded-lg border bg-white p-6 shadow-sm">
+<div class="w-full">
 	<div class="mb-4 flex items-center">
 		<span
 			class="mr-3 h-6 w-6 rounded-full border border-gray-300"

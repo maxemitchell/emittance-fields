@@ -19,7 +19,7 @@
 	} = $props();
 </script>
 
-<div class="mx-auto mb-6 w-full max-w-2xl rounded-lg border bg-white p-6 shadow-sm">
+<div class="w-full">
 	<h3 class="mb-4 text-lg font-semibold text-gray-800">Collaborators</h3>
 
 	{#if collaborators.length === 0}
