@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, user }, params 
 	// Determine user role
 	const userRole = await getUserRole(supabase, user?.id, field);
 
-	return { field, collaborators, emitters, userRole };
+	return { field, collaborators, emitters, userRole, user };
 };
 
 export const actions: Actions = {

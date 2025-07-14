@@ -12,11 +12,12 @@
 	import CanvasOverlay from './canvas/CanvasOverlay.svelte';
 	import ControlsBar from './controls/ControlsBar.svelte';
 	import RoleGuard from './RoleGuard.svelte';
+	import type { UserRole } from '$lib/stores/userRole';
 
 	interface Props {
 		supabase: SupabaseClient<Database>;
 		field: Field;
-		userRole: 'owner' | 'editor' | 'viewer' | 'public';
+		userRole: UserRole;
 		initialEmitters?: Emitter[];
 	}
 
@@ -264,7 +265,7 @@
 
 			<!-- Role Guard -->
 			<RoleGuard
-				userRole={userRole === 'owner' ? 'editor' : userRole === 'editor' ? 'editor' : 'viewer'}
+				userRole={userRole === 'owner' || userRole === 'public' ? null : userRole}
 				isOwner={userRole === 'owner'}
 				isPublic={userRole === 'public'}
 			/>
@@ -274,7 +275,7 @@
 		<ControlsBar
 			currentColor={selectedColor}
 			currentZoom={simpleViewport.scale}
-			userRole={userRole === 'owner' ? 'editor' : userRole === 'editor' ? 'editor' : 'viewer'}
+			userRole={userRole === 'owner' || userRole === 'public' ? null : userRole}
 			isOwner={userRole === 'owner'}
 			isPublic={userRole === 'public'}
 			on:colorChanged={handleColorChange}
