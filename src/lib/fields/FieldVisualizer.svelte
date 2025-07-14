@@ -11,7 +11,6 @@
 	import FieldCanvas from './canvas/FieldCanvas.svelte';
 	import CanvasOverlay from './canvas/CanvasOverlay.svelte';
 	import ControlsBar from './controls/ControlsBar.svelte';
-	import RoleGuard from './RoleGuard.svelte';
 	import type { UserRole } from '$lib/stores/userRole';
 
 	interface Props {
@@ -262,13 +261,6 @@
 
 			<!-- Canvas Overlay -->
 			<CanvasOverlay {field} viewport={viewportWrapped} {canEdit} {selectedColor} />
-
-			<!-- Role Guard -->
-			<RoleGuard
-				userRole={userRole === 'owner' || userRole === 'public' ? null : userRole}
-				isOwner={userRole === 'owner'}
-				isPublic={userRole === 'public'}
-			/>
 		</div>
 
 		<!-- Controls Bar -->

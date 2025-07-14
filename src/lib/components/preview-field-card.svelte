@@ -31,5 +31,8 @@
 		<span class="rounded bg-gray-100 px-2 py-0.5"
 			>{new Date(field.created_at).toLocaleDateString()}</span
 		>
+		<span class="rounded bg-gray-50 px-2 py-0.5 font-mono text-blue-700"
+			>Owner: {field.owner_id}</span
+		>
 	</div>
 </a>

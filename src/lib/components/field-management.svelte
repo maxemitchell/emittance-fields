@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Field } from '$lib/db/fields';
-	import type { ActionData } from '../../routes/$types.d';
+	import type { ActionData } from '../../routes/$types';
 	import { enhance } from '$app/forms';
 
 	let { field, form } = $props<{
@@ -42,6 +42,10 @@
 	<div class="mb-2">
 		<span class="font-medium text-gray-700">Field ID:</span>
 		<span class="font-mono text-xs text-gray-400">{field.id}</span>
+	</div>
+	<div class="mb-2">
+		<span class="font-medium text-gray-700">Owner ID:</span>
+		<span class="font-mono text-xs text-blue-700">{field.owner_id}</span>
 	</div>
 
 	<form method="POST" action="?/deleteField" class="mt-6 flex flex-col items-end" use:enhance>
