@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { Field } from '$lib/db/fields';
+	import type { ActionData } from '../../routes/$types.d';
+	import { enhance } from '$app/forms';
 
-	let { field } = $props<{
+	let { field, form } = $props<{
 		field: Field;
+		form: ActionData | null;
 	}>();
 </script>
 
@@ -41,7 +44,12 @@
 		<span class="font-mono text-xs text-gray-400">{field.id}</span>
 	</div>
 
-	<form method="POST" action="?/deleteField" class="mt-6 flex justify-end">
+	<form method="POST" action="?/deleteField" class="mt-6 flex justify-end" use:enhance>
+		{#if form?.error}
+			<div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+				{form.error}: {form.details?.toString()}
+			</div>
+		{/if}
 		<input type="hidden" name="id" value={field.id} />
 		<button
 			type="submit"

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Field from '$lib/components/field.svelte';
+	import FieldCollaborators from '$lib/components/field-collaborators.svelte';
 
-	let { data } = $props();
-	let { field } = $derived(data);
+	let { data, form } = $props();
+	let { field, collaborators, user } = $derived(data);
 </script>
 
 <a
@@ -17,4 +18,5 @@
 	Back
 </a>
 
-<Field {field} />
+<FieldCollaborators {collaborators} {form} {field} {user} />
+<Field {field} {form} />

@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { getFields } from '$lib/db/fields';
 import { createFieldAction } from '$lib/actions/fields';
+import { withActionErrorHandling } from '$lib/action-middleware';
 
 export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const fields = await getFields(supabase);
@@ -8,5 +9,5 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 };
 
 export const actions: Actions = {
-	createField: createFieldAction
+	createField: withActionErrorHandling(createFieldAction)
 };

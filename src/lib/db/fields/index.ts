@@ -26,28 +26,8 @@ export const getField = async (
  * - Gets all fields the user can see (public, owner, or collaborator).
  * - RLS enforces public/owner/collaborator access.
  */
-export const getFields = async (
-	supabase: SupabaseClient<Database>,
-	options?: {
-		ownerId?: string;
-		isPublic?: boolean;
-		sortBy?: 'created_at' | 'updated_at' | 'name';
-		ascending?: boolean;
-	}
-): Promise<Field[]> => {
-	let query = supabase.from('fields').select();
-
-	if (options?.ownerId) {
-		query = query.eq('owner_id', options.ownerId);
-	}
-	if (options?.isPublic !== undefined) {
-		query = query.eq('is_public', options.isPublic);
-	}
-
-	const sortField = options?.sortBy || 'created_at';
-	const sortDirection = options?.ascending ?? false;
-
-	const { data: fields, error } = await query.order(sortField, { ascending: sortDirection });
+export const getFields = async (supabase: SupabaseClient<Database>): Promise<Field[]> => {
+	const { data: fields, error } = await supabase.from('fields').select();
 
 	if (error) throw error;
 	return fields ?? [];
