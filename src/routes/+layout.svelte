@@ -37,9 +37,16 @@
 				Log in
 			</a>
 		{:else}
+			{#if session.user?.id}
+				<span class="mr-4 ml-auto font-medium text-gray-700">
+					Hi <span class="rounded bg-gray-100 px-2 py-0.5 font-mono text-blue-700"
+						>{session.user.id}</span
+					>!
+				</span>
+			{/if}
 			<a
 				href="/auth/logout"
-				class="ml-auto rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 shadow transition-colors hover:bg-gray-300"
+				class="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 shadow transition-colors hover:bg-gray-300"
 			>
 				Log out
 			</a>
