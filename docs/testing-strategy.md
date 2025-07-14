@@ -29,6 +29,7 @@ supabase/tests/
 ## Test Categories
 
 ### 1. Schema Tests
+
 - Table existence and structure
 - Column definitions and constraints
 - Index presence and performance
@@ -36,6 +37,7 @@ supabase/tests/
 - Foreign key relationships
 
 ### 2. RLS Policy Tests
+
 - **Anonymous users**: Public field access only
 - **Field owners**: Full CRUD on owned fields and emitters
 - **Editors**: Create/update/delete emitters, view collaborators
@@ -43,12 +45,14 @@ supabase/tests/
 - **Unauthorized users**: Proper access denial
 
 ### 3. Data Integrity Tests
+
 - Constraint validation (dimensions, colors, coordinates)
 - Cascade deletion behavior
 - Unique constraint enforcement
 - Business rule validation
 
 ### 4. Integration Tests
+
 - Complex permission scenarios
 - Multi-user collaboration workflows
 - Cross-table relationship validation
@@ -56,24 +60,28 @@ supabase/tests/
 ## User Personas for Testing
 
 ### Alice (Field Owner)
+
 - Can create, read, update, delete their fields
 - Can manage all emitters in their fields
 - Can add/remove collaborators with different roles
 - Can change field visibility (public/private)
 
 ### Bob (Editor Collaborator)
+
 - Can view fields they have editor access to
 - Can create, update, delete emitters in accessible fields
 - Can view other collaborators
 - Cannot modify field settings or collaborator list
 
 ### Carol (Viewer Collaborator)
+
 - Can view fields they have viewer access to
 - Can view emitters in accessible fields
 - Can view other collaborators
 - Cannot modify anything
 
 ### Dave (Anonymous User)
+
 - Can only view public fields and their emitters
 - Cannot access private fields
 - Cannot create or modify anything
@@ -94,6 +102,7 @@ supabase test new test_name
 ## Test Data Strategy
 
 Each test file includes:
+
 - Setup phase: Create test users and base data
 - Test execution: Run scenarios with different user contexts
 - Cleanup phase: Reset to clean state (handled by pgTAP)
@@ -101,6 +110,7 @@ Each test file includes:
 ## Assertion Patterns
 
 ### RLS Testing Pattern
+
 ```sql
 -- Switch to specific user context
 set local role authenticated;
@@ -115,6 +125,7 @@ select results_eq(
 ```
 
 ### Schema Testing Pattern
+
 ```sql
 -- Test table structure
 select has_table('public', 'fields', 'Fields table exists');
