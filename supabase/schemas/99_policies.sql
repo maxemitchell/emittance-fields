@@ -89,7 +89,7 @@ create policy "View collaborators on public fields" on "public"."field_collabora
 -- Anyone can view emitters in public fields
 create policy "Public field emitters are viewable" on "public"."emitters"
   for select
-  to authenticated
+  to public
   using (
     public.is_field_public(field_id)
   );

@@ -14,6 +14,9 @@ create table "public"."emitters" (
 -- Enable RLS on emitters
 alter table "public"."emitters" enable row level security;
 
+-- Enable Realtime on emitters
+alter publication supabase_realtime add table "public"."emitters";
+
 -- Trigger to update timestamp
 create trigger update_emitters_updated_at before update on "public"."emitters"
   for each row execute procedure moddatetime(updated_at);

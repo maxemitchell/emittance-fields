@@ -40,8 +40,8 @@ select tests.clear_authentication();
 
 select results_eq(
     'SELECT count(*) FROM public.emitters',
-    ARRAY[0::bigint],
-    'Anonymous users can not see any emitters'
+    ARRAY[3::bigint],
+    'Anonymous users can see emitters in public fields'
 );
 
 -- ============================================================================
