@@ -6,7 +6,11 @@
 	}>();
 </script>
 
-<div class="rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+<a
+	href={`/fields/${field.id}`}
+	class="block rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:bg-gray-50 hover:shadow-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+	style="text-decoration: none;"
+>
 	<div class="mb-2 flex items-center">
 		<span
 			class="mr-2 h-4 w-4 rounded-full border border-gray-300"
@@ -28,4 +32,4 @@
 			>{new Date(field.created_at).toLocaleDateString()}</span
 		>
 	</div>
-</div>
+</a>

@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { getFields } from '$lib/db/fields';
-import { createFieldAction, updateFieldAction, deleteFieldAction } from '$lib/actions/fields';
+import { createFieldAction } from '$lib/actions/fields';
 
 export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const fields = await getFields(supabase);
@@ -8,7 +8,5 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 };
 
 export const actions: Actions = {
-	createField: createFieldAction,
-	updateField: updateFieldAction,
-	deleteField: deleteFieldAction
+	createField: createFieldAction
 };
