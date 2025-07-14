@@ -12,7 +12,8 @@ create table "public"."field_collaborators" (
   unique (field_id, user_id)
 );
 
-
+-- Enable RLS on field_collaborators
+alter table "public"."field_collaborators" enable row level security;
 
 -- Trigger to update timestamp
 create trigger update_field_collaborators_updated_at before update on "public"."field_collaborators"

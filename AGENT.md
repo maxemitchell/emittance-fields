@@ -95,3 +95,29 @@ supabase db reset --version <timestamp>       # Rollback for development
 - For complex entities (views, functions): edit in-place in schema files
 - DML operations and RLS policies still require traditional migrations
 - Never reset deployed migrations - use forward-only rollbacks for production
+
+## Database Testing
+
+**Pattern**: Use pgTAP for comprehensive database testing, focusing on authorization layer validation.
+
+### Testing Strategy
+
+1. **Schema Tests**: Validate table structure, constraints, indexes
+2. **RLS Policy Tests**: Test authorization rules for all user scenarios
+3. **Data Integrity Tests**: Verify constraints and business rules
+4. **Performance Tests**: Validate query efficiency and index usage
+
+### Key Commands
+
+```bash
+supabase test new <test_name>              # Create new test file
+supabase test db                           # Run all database tests
+supabase test db --debug                   # Run tests with verbose output
+```
+
+### Testing Focus Areas
+
+- **Fields**: Owner/public/collaborator access patterns
+- **Emitters**: Creation/editing permissions based on field access
+- **Field Collaborators**: Role-based access (viewer vs editor)
+- **Cross-table relationships**: Cascading deletes and referential integrity

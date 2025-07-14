@@ -111,8 +111,14 @@ supabase/
 ## Migration Commands Reference
 
 ```bash
+# Stop database before running diff
+supabase stop
+
 # Generate migration from schema changes
 supabase db diff -f create_new_feature
+
+# Start database
+supabase start
 
 # Apply pending migrations locally
 supabase migration up

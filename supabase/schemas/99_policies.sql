@@ -1,110 +1,119 @@
--- Row Level Security Policies
--- Numbered 99_ to run after all table definitions
-
 -- ============================================================================
 -- FIELDS POLICIES
 -- ============================================================================
 
--- Enable RLS on fields
-alter table "public"."fields" enable row level security;
-
 -- Public fields are viewable by everyone
 create policy "Public fields are viewable by all" on "public"."fields"
-  for select using (is_public = true);
+  for select
+  to public
+  using (is_public = true);
 
 -- Owners can view, update, and delete their fields
 create policy "Owners can manage their fields" on "public"."fields"
-  for all using (auth.uid() = owner_id);
+  for all
+  to authenticated
+  using (auth.uid() = owner_id)
+  with check (auth.uid() = owner_id);
 
 -- Collaborators can view fields they have access to
 create policy "Collaborators can view accessible fields" on "public"."fields"
-  for select using (
-    exists (
-      select 1 from public.field_collaborators fc
-      where fc.field_id = fields.id
-      and fc.user_id = auth.uid()
-    )
+  for select
+  to authenticated
+  using ( 
+    public.has_field_access(id)
   );
 
--- Users can create new fields
+-- Collaborators with editor role can update fields they have access to
+create policy "Editors can update accessible fields" on "public"."fields"
+  for update
+  to authenticated
+  using ( 
+    public.has_field_editor_access(id)
+  )
+  with check (
+    public.has_field_editor_access(id)
+  );
+
+-- Users can create new fields (must be the owner)
 create policy "Users can create fields" on "public"."fields"
-  for insert with check (auth.uid() = owner_id);
+  for insert
+  with check (auth.uid() = owner_id);
 
 -- ============================================================================
 -- FIELD_COLLABORATORS POLICIES
 -- ============================================================================
 
--- Enable RLS on field_collaborators
-alter table "public"."field_collaborators" enable row level security;
-
 -- Field owners can manage collaborators
 create policy "Field owners can manage collaborators" on "public"."field_collaborators"
-  for all using (
-    exists (
-      select 1 from public.fields f
-      where f.id = field_id
-      and f.owner_id = auth.uid()
-    )
+  for all
+  to authenticated
+  using (
+    public.is_field_owner(field_id)
+  )
+  with check (
+    public.is_field_owner(field_id)
   );
 
 -- Users can view their own collaborator records
 create policy "Users can view their collaborations" on "public"."field_collaborators"
-  for select using (auth.uid() = user_id);
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
 
 -- Collaborators can view other collaborators on the same field
-create policy "Collaborators can view field team" on "public"."field_collaborators"
-  for select using (
-    exists (
-      select 1 from public.field_collaborators fc
-      where fc.field_id = field_collaborators.field_id
-      and fc.user_id = auth.uid()
-    )
+create policy "Collaborators can view other collaborators" on "public"."field_collaborators"
+  for select
+  to authenticated
+  using (
+    public.has_field_access(field_id)
+  );
+
+-- Anyone can view collaborators on public fields
+create policy "View collaborators on public fields" on "public"."field_collaborators"
+  for select
+  to authenticated
+  using (
+    public.is_field_public(field_id)
   );
 
 -- ============================================================================
 -- EMITTERS POLICIES
 -- ============================================================================
 
--- Enable RLS on emitters
-alter table "public"."emitters" enable row level security;
-
 -- Anyone can view emitters in public fields
 create policy "Public field emitters are viewable" on "public"."emitters"
-  for select using (
-    exists (
-      select 1 from public.fields f
-      where f.id = field_id
-      and f.is_public = true
-    )
+  for select
+  to authenticated
+  using (
+    public.is_field_public(field_id)
   );
 
 -- Field owners can manage all emitters in their fields
 create policy "Field owners can manage emitters" on "public"."emitters"
-  for all using (
-    exists (
-      select 1 from public.fields f
-      where f.id = field_id
-      and f.owner_id = auth.uid()
-    )
+  for all
+  to authenticated
+  using (
+    public.is_field_owner(field_id)
+  )
+  with check (
+    public.is_field_owner(field_id)
   );
 
 -- Collaborators with editor role can create/update/delete emitters
 create policy "Editors can manage emitters" on "public"."emitters"
-  for all using (
-    exists (
-      select 1 from public.field_collaborators fc
-      where fc.field_id = emitters.field_id
-      and fc.user_id = auth.uid()
-      and fc.role = 'editor'
-    )
+  for all
+  to authenticated
+  using (
+    public.has_field_editor_access(field_id)
+  )
+  with check (
+    public.has_field_editor_access(field_id)
   );
 
 -- Collaborators with viewer role can only view emitters
 create policy "Viewers can view emitters" on "public"."emitters"
-  for select using (
-    exists (
-      select 1 from public.field_collaborators fc
-      where fc.field_id = emitters.field_id
-      and fc.user_id = auth.uid()
-    )
+  for select
+  to authenticated
+  using (
+    public.has_field_access(field_id)
   );

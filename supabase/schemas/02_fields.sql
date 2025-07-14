@@ -13,6 +13,8 @@ create table "public"."fields" (
   "updated_at" timestamp with time zone default now() not null
 );
 
+-- Enable RLS on fields
+alter table "public"."fields" enable row level security;
 
 -- Trigger to update timestamp on field updates
 create trigger update_fields_updated_at before update on "public"."fields"

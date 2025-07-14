@@ -11,7 +11,8 @@ create table "public"."emitters" (
   check (x >= 0 and y >= 0 )
 );
 
-
+-- Enable RLS on emitters
+alter table "public"."emitters" enable row level security;
 
 -- Trigger to update timestamp
 create trigger update_emitters_updated_at before update on "public"."emitters"
