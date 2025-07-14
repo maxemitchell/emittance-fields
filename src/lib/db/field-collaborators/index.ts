@@ -87,7 +87,12 @@ export const removeFieldCollaborator = async (
 	supabase: SupabaseClient<Database>,
 	id: string
 ): Promise<FieldCollaborator | null> => {
-	const { data: result, error } = await supabase.from('field_collaborators').delete().eq('id', id);
+	const { data: result, error } = await supabase
+		.from('field_collaborators')
+		.delete()
+		.eq('id', id)
+		.select()
+		.single();
 
 	if (error) throw error;
 	return result;
