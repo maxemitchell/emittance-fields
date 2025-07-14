@@ -5,11 +5,14 @@
 	let { fields } = $derived(data);
 </script>
 
-<h1>Welcome to Emittance Fields!</h1>
-<ul>
-	{#each fields as field (field.id)}
-		<li>
-			<FieldPreviewCard {field} />
-		</li>
-	{/each}
-</ul>
+{#if fields.length === 0}
+	<p class="text-gray-500 italic">No public fields yet.</p>
+{:else}
+	<ul>
+		{#each fields as field (field.id)}
+			<li>
+				<FieldPreviewCard {field} />
+			</li>
+		{/each}
+	</ul>
+{/if}
