@@ -1,7 +1,7 @@
 begin;
 
 -- Start transaction and declare test plan
-select plan(30);
+select plan(31);
 
 -- ============================================================================
 -- TEST DATA SETUP
@@ -246,13 +246,14 @@ select is_empty(
     'Carol cannot update collaborators on fields she does not own'
 );
 
--- Test Carol cannot remove collaborators from any field
-select is_empty(
+-- Test Carol can remove her own collaborations
+select results_eq(
     $$DELETE FROM public.field_collaborators 
       WHERE user_id = tests.get_supabase_uid('carol@test.com') 
       AND field_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid
       RETURNING 1$$,
-    'Carol cannot remove collaborators from fields she does not own'
+    ARRAY[1::integer],
+    'Carol can remove her own collaborations'
 );
 
 -- ============================================================================
@@ -311,6 +312,21 @@ select throws_ok(
     NULL,
     'Cannot add the same user as collaborator twice on the same field'
 );
+
+
+-- Test that Bob can remove his own collaboration on a field he doesn't own
+select tests.authenticate_as('bob@test.com');
+
+select results_eq(
+    $$DELETE FROM public.field_collaborators 
+      WHERE user_id = tests.get_supabase_uid('bob@test.com') 
+      AND field_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid
+      RETURNING 1$$,
+      ARRAY[1::integer],
+      'Bob can remove his own collaboration on a field he does not own'
+);
+
+
 
 -- ============================================================================
 -- FINISH TESTS

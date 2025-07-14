@@ -60,6 +60,12 @@ create policy "Users can view their collaborations" on "public"."field_collabora
   to authenticated
   using (auth.uid() = user_id);
 
+-- Users can delete their own collaborator records
+create policy "Users can delete their own collaborations" on "public"."field_collaborators"
+  for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
 -- Collaborators can view other collaborators on the same field
 create policy "Collaborators can view other collaborators" on "public"."field_collaborators"
   for select
