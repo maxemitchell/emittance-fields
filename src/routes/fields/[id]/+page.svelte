@@ -4,7 +4,7 @@
 	import FieldVisualizer from '$lib/fields/FieldVisualizer.svelte';
 
 	let { data, form } = $props();
-	let { field, collaborators, userRole, user, emitters } = $derived(data);
+	let { field, collaborators, userRole, user, emitters, supabase } = $derived(data);
 
 	let showManagement = $state(false);
 </script>
@@ -46,7 +46,7 @@
 	<!-- Main Content -->
 	<div class="relative overflow-hidden" style="height: 70vh;">
 		<!-- Field Visualizer -->
-		<FieldVisualizer {field} {userRole} initialEmitters={emitters} />
+		<FieldVisualizer {field} {supabase} {userRole} initialEmitters={emitters} />
 
 		<!-- Management Panel (overlay) -->
 		{#if showManagement}

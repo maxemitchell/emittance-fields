@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
-	import { page } from '$app/stores';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { Field } from '$lib/db/fields';
 	import type { Database } from '../../database.types';
@@ -15,15 +14,13 @@
 	import RoleGuard from './RoleGuard.svelte';
 
 	interface Props {
+		supabase: SupabaseClient<Database>;
 		field: Field;
 		userRole: 'owner' | 'editor' | 'viewer' | 'public';
 		initialEmitters?: Emitter[];
 	}
 
-	let { field, userRole, initialEmitters = [] }: Props = $props();
-
-	// Get supabase client from page data (inherited from layout)
-	const supabase = $derived($page.data.supabase as SupabaseClient<Database>);
+	let { field, supabase, userRole, initialEmitters = [] }: Props = $props();
 
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
@@ -50,7 +47,6 @@
 	let simpleViewport = $state({ x: 0, y: 0, scale: 1 });
 	let canvasElement: HTMLElement | null = $state(null);
 	let subscribers: Array<(value: { x: number; y: number; scale: number }) => void> = [];
-	let realtimeActive = $state(false);
 
 	// Get actual canvas dimensions
 	function getCanvasDimensions() {
@@ -288,18 +284,6 @@
 			on:zoomToActual={handleZoomToActual}
 			on:resetPan={handlePanReset}
 		/>
-
-		<!-- Real-time Activity Indicator -->
-		<div class="fixed top-4 left-4 z-50">
-			<div
-				class="flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 text-sm font-medium shadow-lg backdrop-blur-sm"
-			>
-				<div class="h-2 w-2 rounded-full {realtimeActive ? 'bg-green-500' : 'bg-gray-400'}"></div>
-				<span class="text-gray-700">
-					{realtimeActive ? 'Real-time Active' : 'No Recent Activity'}
-				</span>
-			</div>
-		</div>
 	{/if}
 </div>
 
