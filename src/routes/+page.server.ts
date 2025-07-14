@@ -1,10 +1,7 @@
 import type { PageServerLoad } from './$types';
+import { getFields } from '$lib/db/fields';
 
 export const load: PageServerLoad = async ({ locals: { supabase } }) => {
-	const { data: test_table } = await supabase
-		.from('test_table')
-		.select('something')
-		.limit(5)
-		.order('something');
-	return { test_table: test_table ?? [] };
+	const fields = await getFields(supabase);
+	return { fields };
 };
