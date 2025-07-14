@@ -17,23 +17,36 @@
 	});
 </script>
 
-<header class="bg-white/90 backdrop-blur shadow-md sticky top-0 z-20">
-	<div class="max-w-4xl mx-auto flex items-center gap-4 py-4 px-6">
+<header class="sticky top-0 z-20 bg-white/90 shadow-md backdrop-blur">
+	<div class="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4">
 		<a href="/" class="flex items-center gap-2">
-			<img src="/logo.png" alt="Emittance Fields Logo" class="h-12 w-12 rounded shadow-sm border border-gray-200 bg-white" />
-			<span class="text-3xl font-extrabold tracking-tight text-gray-800 select-none">Emittance Fields</span>
+			<img
+				src="/logo.png"
+				alt="Emittance Fields Logo"
+				class="h-12 w-12 rounded border border-gray-200 bg-white shadow-sm"
+			/>
+			<span class="text-3xl font-extrabold tracking-tight text-gray-800 select-none"
+				>Emittance Fields</span
+			>
 		</a>
 		{#if !session}
 			<a
 				href="/auth"
-				class="ml-auto rounded px-4 py-2 bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
+				class="ml-auto rounded bg-blue-600 px-4 py-2 font-semibold text-white shadow transition-colors hover:bg-blue-700"
 			>
 				Log in
+			</a>
+		{:else}
+			<a
+				href="/auth/logout"
+				class="ml-auto rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 shadow transition-colors hover:bg-gray-300"
+			>
+				Log out
 			</a>
 		{/if}
 	</div>
 </header>
 
-<main class="container mx-auto px-4 mt-8">
+<main class="container mx-auto mt-8 px-4">
 	{@render children()}
 </main>
