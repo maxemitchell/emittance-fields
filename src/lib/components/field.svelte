@@ -44,10 +44,34 @@
 		<span class="font-mono text-xs text-gray-400">{field.id}</span>
 	</div>
 
-	<form method="POST" action="?/deleteField" class="mt-6 flex justify-end" use:enhance>
-		{#if form?.error}
-			<div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-				{form.error}: {form.details?.toString()}
+	<form method="POST" action="?/deleteField" class="mt-6 flex flex-col items-end" use:enhance>
+		{#if form?.deleteFieldAction?.error}
+			<div
+				class="mb-4 flex w-full items-center gap-2 rounded border border-red-300 bg-red-100 p-3 text-sm text-red-800 shadow-sm"
+			>
+				<svg
+					class="h-5 w-5 flex-shrink-0 text-red-500"
+					fill="none"
+					viewBox="0 0 20 20"
+					stroke="currentColor"
+				>
+					<circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="2" fill="none" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 7v4m0 4h.01"
+					/>
+				</svg>
+				<div>
+					<span class="font-semibold">Delete failed:</span>
+					<span>{form.deleteFieldAction.error}</span>
+					{#if form.deleteFieldAction.details}
+						<span class="mt-1 block text-xs text-red-700"
+							>{form.deleteFieldAction.details.toString()}</span
+						>
+					{/if}
+				</div>
 			</div>
 		{/if}
 		<input type="hidden" name="id" value={field.id} />

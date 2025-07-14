@@ -22,9 +22,9 @@
 >
 	<h3 class="mb-4 text-lg font-semibold text-gray-800">Create New Field</h3>
 
-	{#if form?.error}
+	{#if form?.createFieldAction?.error}
 		<div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-			{form.error}
+			{form.createFieldAction.error}
 		</div>
 	{/if}
 

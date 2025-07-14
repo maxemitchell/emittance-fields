@@ -74,8 +74,9 @@ export const updateField = async (
 export const deleteField = async (
 	supabase: SupabaseClient<Database>,
 	id: string
-): Promise<void> => {
-	const { error } = await supabase.from('fields').delete().eq('id', id);
+): Promise<Field | null> => {
+	const { data, error } = await supabase.from('fields').delete().eq('id', id);
 
 	if (error) throw error;
+	return data;
 };

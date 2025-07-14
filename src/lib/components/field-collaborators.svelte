@@ -28,7 +28,7 @@
 
 	<ul class="mb-4 divide-y divide-gray-100">
 		{#each collaborators as collaborator (collaborator.id)}
-			<FieldCollaboratorComponent {collaborator} {field} {user} />
+			<FieldCollaboratorComponent {collaborator} {field} {user} {form} />
 		{/each}
 	</ul>
 

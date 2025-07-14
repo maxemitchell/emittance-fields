@@ -7,7 +7,7 @@ export const createFieldAction: Action = async ({ request, locals: { supabase, u
 	// TODO[MM]: Add Form Validations
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { createFieldAction: { error: 'Unauthorized' } });
 	}
 
 	const field = await createField(supabase, {
@@ -21,6 +21,10 @@ export const createFieldAction: Action = async ({ request, locals: { supabase, u
 	});
 
 	return {
+		createFieldAction: {
+			status: 200,
+			message: 'Field created successfully'
+		},
 		success: true,
 		field
 	};
@@ -31,7 +35,7 @@ export const updateFieldAction: Action = async ({ request, locals: { supabase, u
 	// TODO[MM]: Add Form Validations
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { updateFieldAction: { error: 'Unauthorized' } });
 	}
 
 	const field = await updateField(supabase, data.get('id') as string, {
@@ -44,7 +48,7 @@ export const updateFieldAction: Action = async ({ request, locals: { supabase, u
 	});
 
 	if (!field) {
-		return fail(404, { error: 'Field not found' });
+		return fail(404, { updateFieldAction: { error: 'Field not found' } });
 	}
 
 	return {
@@ -58,12 +62,22 @@ export const deleteFieldAction: Action = async ({ request, locals: { supabase, u
 	// TODO[MM]: Add Form Validations
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { deleteFieldAction: { error: 'Unauthorized' } });
 	}
 
-	await deleteField(supabase, data.get('id') as string);
+	const field = await deleteField(supabase, data.get('id') as string);
+
+	if (!field) {
+		return fail(404, {
+			deleteFieldAction: { error: 'Field not found or not authorized to delete' }
+		});
+	}
 
 	return {
+		deleteFieldAction: {
+			status: 200,
+			message: 'Field deleted successfully'
+		},
 		success: true
 	};
 };

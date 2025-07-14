@@ -15,7 +15,7 @@ export const addFieldCollaboratorAction: Action = async ({
 	const data = await request.formData();
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { addFieldCollaboratorAction: { error: 'Unauthorized' } });
 	}
 
 	const field_id = data.get('field_id') as string;
@@ -23,7 +23,7 @@ export const addFieldCollaboratorAction: Action = async ({
 	const role = data.get('role') as CollaboratorRole;
 
 	if (!field_id || !user_id) {
-		return fail(400, { error: 'Missing field_id or user_id' });
+		return fail(400, { addFieldCollaboratorAction: { error: 'Missing field_id or user_id' } });
 	}
 
 	const collaborator = await addFieldCollaborator(supabase, {
@@ -32,6 +32,10 @@ export const addFieldCollaboratorAction: Action = async ({
 		role
 	});
 	return {
+		addFieldCollaboratorAction: {
+			status: 200,
+			message: 'Collaborator added successfully'
+		},
 		success: true,
 		collaborator
 	};
@@ -45,27 +49,34 @@ export const updateFieldCollaboratorAction: Action = async ({
 	const data = await request.formData();
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { updateFieldCollaboratorAction: { error: 'Unauthorized' } });
 	}
 
 	const id = data.get('id') as string;
 	const role = data.get('role') as CollaboratorRole;
 
 	if (!id || !role) {
-		return fail(400, { error: 'Missing id or role' });
+		return fail(400, { updateFieldCollaboratorAction: { error: 'Missing id or role' } });
 	}
 
 	const collaborator = await updateFieldCollaborator(supabase, id, { role });
 	if (!collaborator) {
-		return fail(404, { error: 'Collaborator not found' });
+		return fail(404, {
+			updateFieldCollaboratorAction: {
+				error: 'Collaborator not found or not authorized to update'
+			}
+		});
 	}
 	return {
+		updateFieldCollaboratorAction: {
+			status: 200,
+			message: 'Collaborator updated successfully'
+		},
 		success: true,
 		collaborator
 	};
 };
 
-// Action to remove a collaborator from a field
 export const removeFieldCollaboratorAction: Action = async ({
 	request,
 	locals: { supabase, user }
@@ -73,17 +84,30 @@ export const removeFieldCollaboratorAction: Action = async ({
 	const data = await request.formData();
 
 	if (!user) {
-		return fail(401, { error: 'Unauthorized' });
+		return fail(401, { removeFieldCollaboratorAction: { error: 'Unauthorized' } });
 	}
 
 	const id = data.get('id') as string;
 
 	if (!id) {
-		return fail(400, { error: 'Missing field_collaborator id' });
+		return fail(400, { removeFieldCollaboratorAction: { error: 'Missing field_collaborator id' } });
 	}
 
-	await removeFieldCollaborator(supabase, id);
+	const collaborator = await removeFieldCollaborator(supabase, id);
+
+	if (!collaborator) {
+		return fail(404, {
+			removeFieldCollaboratorAction: {
+				error: 'Collaborator not found or not authorized to remove'
+			}
+		});
+	}
 	return {
-		success: true
+		removeFieldCollaboratorAction: {
+			status: 200,
+			message: 'Collaborator removed successfully'
+		},
+		success: true,
+		collaborator
 	};
 };

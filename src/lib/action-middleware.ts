@@ -12,9 +12,11 @@ export function withActionErrorHandling(action: Action) {
 		} catch (error: unknown) {
 			console.error('Action error:', error);
 			return {
-				status: 500,
-				error: 'Internal Server Error',
-				details: (error as { message: string })?.message
+				[action.name]: {
+					status: 500,
+					error: 'Internal Server Error',
+					details: (error as { message: string })?.message
+				}
 			};
 		}
 	};
