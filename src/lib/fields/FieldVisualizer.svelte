@@ -6,6 +6,7 @@
 	import type { Field } from '$lib/db/fields';
 	import type { Database } from '../../database.types';
 	import type { Emitter } from '$lib/db/emitters';
+	import type { EmitterStoreInstance } from '$lib/stores/factories';
 	import { setStoreContext } from '$lib/stores/context';
 	import { subscribeToEmitters } from '$lib/db/emitters';
 	import FieldCanvas from './canvas/FieldCanvas.svelte';
@@ -27,15 +28,21 @@
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 	let realtimeUnsubscribe: (() => void) | null = null;
+	let emitterStore: EmitterStoreInstance | undefined = $state();
 
-	// Set up store context and get store instances
-	const { emitterStore } = setStoreContext(supabase);
+	// Set up store context when supabase is available
+	$effect(() => {
+		if (supabase) {
+			const { emitterStore: store } = setStoreContext(supabase);
+			emitterStore = store;
+		}
+	});
 
 	// Derived state
 	const canEdit = $derived(userRole === 'owner' || userRole === 'editor');
 
 	// Create derived stores that match canvas component expectations
-	const emittersMapStore = derived(emitterStore, (state) => state.emitters);
+	const emittersMapStore = $derived(emitterStore ? derived(emitterStore, (state) => state.emitters) : null);
 
 	// Create a simple viewport store that uses translation offsets
 	let simpleViewport = $state({ x: 0, y: 0, scale: 1 });
@@ -115,6 +122,12 @@
 	// Initialize stores and real-time connection
 	onMount(async () => {
 		try {
+			// Wait for emitter store to be available
+			if (!emitterStore) {
+				console.error('Emitter store not initialized');
+				return;
+			}
+
 			// Hydrate store with server data if available, otherwise load
 			if (initialEmitters.length > 0) {
 				emitterStore.hydrate(initialEmitters, field.id);
@@ -150,7 +163,9 @@
 			cancelAnimationFrame(rafId);
 		}
 		// Clean up store to prevent memory leaks
-		emitterStore.destroy();
+		if (emitterStore) {
+			emitterStore.destroy();
+		}
 	});
 
 	// Handle zoom controls
@@ -222,14 +237,15 @@
 		<!-- Canvas Container -->
 		<div class="relative h-full w-full" bind:this={canvasElement}>
 			<!-- Main Canvas -->
-			<FieldCanvas
-				{field}
-				emitters={emittersMapStore}
-				viewport={viewportWrapped}
+			{#if emittersMapStore}
+				<FieldCanvas
+					{field}
+					emitters={emittersMapStore}
+					viewport={viewportWrapped}
 				{canEdit}
 				{selectedColor}
 				onEmitterPlace={(x, y, color) => {
-					if (!canEdit) return;
+					if (!canEdit || !emitterStore) return;
 
 					// Ensure coordinates are within field bounds
 					const clampedX = Math.max(0, Math.min(field.width - 1, Math.round(x)));
@@ -242,7 +258,8 @@
 						color
 					});
 				}}
-			/>
+				/>
+			{/if}
 
 			<!-- Canvas Overlay -->
 			<CanvasOverlay {field} viewport={viewportWrapped} {canEdit} {selectedColor} />

@@ -145,7 +145,7 @@
 	}
 
 	// Calculate grid pattern properties for SVG pattern-based rendering
-	const gridPattern = $derived(() => {
+	const gridPattern = $derived.by(() => {
 		// Only show grid if zoomed in enough (when each pixel is at least 4 screen pixels)
 		if ($viewport.scale < 4) return null;
 
@@ -176,9 +176,10 @@
 	function generateVisibleGridLines() {
 		const gridLines: Array<{ x1: number; y1: number; x2: number; y2: number; key: string }> = [];
 
-		if (!gridPattern) return gridLines;
+		const pattern = gridPattern;
+		if (!pattern) return gridLines;
 
-		const { step, viewportBounds } = gridPattern;
+		const { step, viewportBounds } = pattern;
 
 		// Only generate lines that are visible in the current viewport
 		// Vertical lines
@@ -261,6 +262,8 @@
 	});
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	bind:this={overlayElement}
 	class="canvas-overlay"
@@ -280,6 +283,7 @@
 	role="application"
 	aria-label="Field visualization with {field.width}x{field.height} pixels - use arrow keys to navigate, Enter to place emitter"
 	tabindex="0"
+	data-sveltekit-preload-data="off"
 >
 	<!-- Field bounds outline -->
 	<div
@@ -297,7 +301,8 @@
 
 	<!-- Grid overlay -->
 	{#if showGrid}
-		{#if gridPattern}
+		{@const pattern = gridPattern}
+		{#if pattern}
 			<!-- Use SVG pattern for better performance -->
 			<svg
 				class="grid-overlay"
@@ -314,12 +319,12 @@
 				<defs>
 					<pattern
 						id="grid-pattern"
-						width={gridPattern.size}
-						height={gridPattern.size}
+						width={pattern.size}
+						height={pattern.size}
 						patternUnits="userSpaceOnUse"
 					>
 						<path
-							d="M {gridPattern.size} 0 L 0 0 0 {gridPattern.size}"
+							d="M {pattern.size} 0 L 0 0 0 {pattern.size}"
 							fill="none"
 							stroke="#000"
 							stroke-width="1"
