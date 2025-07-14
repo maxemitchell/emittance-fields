@@ -17,14 +17,23 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col">
-	<header class="bg-white/90 backdrop-blur shadow-md sticky top-0 z-20">
-		<div class="max-w-4xl mx-auto flex items-center gap-4 py-4 px-6">
-			<img src="/logo.png" alt="Emittance Fields Logo" class="h-10 w-10 rounded shadow-sm border border-gray-200 bg-white" />
+<header class="bg-white/90 backdrop-blur shadow-md sticky top-0 z-20">
+	<div class="max-w-4xl mx-auto flex items-center gap-4 py-4 px-6">
+		<a href="/" class="flex items-center gap-2">
+			<img src="/logo.png" alt="Emittance Fields Logo" class="h-12 w-12 rounded shadow-sm border border-gray-200 bg-white" />
 			<span class="text-3xl font-extrabold tracking-tight text-gray-800 select-none">Emittance Fields</span>
-		</div>
-	</header>
-	<main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
-		{@render children()}
-	</main>
-</div>
+		</a>
+		{#if !session}
+			<a
+				href="/auth"
+				class="ml-auto rounded px-4 py-2 bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors"
+			>
+				Log in
+			</a>
+		{/if}
+	</div>
+</header>
+
+<main class="container mx-auto px-4 mt-8">
+	{@render children()}
+</main>
