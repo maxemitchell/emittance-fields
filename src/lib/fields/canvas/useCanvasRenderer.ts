@@ -24,6 +24,8 @@ export class CanvasRenderer {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	private offscreenCanvas?: OffscreenCanvas;
+	private tempCanvas: HTMLCanvasElement;
+	private tempCtx: CanvasRenderingContext2D;
 	private field: Field;
 	private emitters: Map<string, Emitter> = new Map();
 	private viewport: Viewport = { x: 0, y: 0, scale: 1 };
@@ -50,6 +52,19 @@ export class CanvasRenderer {
 			throw new Error('Failed to get 2D context');
 		}
 		this.ctx = ctx;
+
+		// Set up reusable temporary canvas
+		this.tempCanvas = document.createElement('canvas');
+		this.tempCanvas.width = field.width;
+		this.tempCanvas.height = field.height;
+		const tempCtx = this.tempCanvas.getContext('2d', {
+			alpha: false
+		});
+		if (!tempCtx) {
+			throw new Error('Failed to get 2D context for temp canvas');
+		}
+		this.tempCtx = tempCtx;
+		this.tempCtx.imageSmoothingEnabled = false;
 
 		// Set up offscreen canvas if enabled and available
 		if (this.options.enableOffscreenCanvas && typeof OffscreenCanvas !== 'undefined') {
@@ -146,19 +161,8 @@ export class CanvasRenderer {
 		// Clear canvas
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		// Create a temporary canvas with the field data
-		const tempCanvas = document.createElement('canvas');
-		const tempCtx = tempCanvas.getContext('2d', {
-			alpha: false
-		});
-		if (!tempCtx) return;
-
-		tempCanvas.width = this.field.width;
-		tempCanvas.height = this.field.height;
-
-		// Disable smoothing on temp canvas too
-		tempCtx.imageSmoothingEnabled = false;
-		tempCtx.putImageData(this.imageData, 0, 0);
+		// Use reusable temporary canvas
+		this.tempCtx.putImageData(this.imageData, 0, 0);
 
 		// Calculate pixel-aligned transform
 		const translateX = Math.round(this.viewport.x);
@@ -174,10 +178,10 @@ export class CanvasRenderer {
 		// When the scale is an integer, this helps avoid sub-pixel rendering
 		if (scale % 1 === 0) {
 			// Integer scale - can render pixel-perfect
-			this.ctx.drawImage(tempCanvas, 0, 0);
+			this.ctx.drawImage(this.tempCanvas, 0, 0);
 		} else {
 			// Non-integer scale - still render but may have some antialiasing
-			this.ctx.drawImage(tempCanvas, 0, 0);
+			this.ctx.drawImage(this.tempCanvas, 0, 0);
 		}
 
 		this.ctx.restore();

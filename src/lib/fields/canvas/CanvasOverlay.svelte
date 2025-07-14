@@ -92,22 +92,94 @@
 		cursorPosition = null;
 	}
 
-	// Generate grid lines
-	function generateGridLines() {
-		const gridLines: Array<{ x1: number; y1: number; x2: number; y2: number; key: string }> = [];
+	// Handle keyboard navigation for accessibility
+	function handleKeyDown(event: KeyboardEvent) {
+		if (!canEdit || !cursorPosition) return;
 
+		let newX = cursorPosition.x;
+		let newY = cursorPosition.y;
+
+		switch (event.key) {
+			case 'ArrowLeft':
+				newX = Math.max(0, newX - 1);
+				event.preventDefault();
+				break;
+			case 'ArrowRight':
+				newX = Math.min(field.width - 1, newX + 1);
+				event.preventDefault();
+				break;
+			case 'ArrowUp':
+				newY = Math.max(0, newY - 1);
+				event.preventDefault();
+				break;
+			case 'ArrowDown':
+				newY = Math.min(field.height - 1, newY + 1);
+				event.preventDefault();
+				break;
+			case 'Enter':
+			case ' ':
+				// Place emitter at current cursor position
+				if (cursorPosition) {
+					// Dispatch custom event for placing emitter
+					overlayElement.dispatchEvent(new CustomEvent('placeEmitter', {
+						detail: { x: cursorPosition.x, y: cursorPosition.y, color: selectedColor }
+					}));
+				}
+				event.preventDefault();
+				break;
+			default:
+				return;
+		}
+
+		if (newX !== cursorPosition.x || newY !== cursorPosition.y) {
+			cursorPosition = { x: newX, y: newY };
+			// Update mouse position for visual feedback
+			if (overlayElement) {
+				const screenPos = fieldToScreen(newX, newY);
+				mouseX = screenPos.x + overlayElement.getBoundingClientRect().left;
+				mouseY = screenPos.y + overlayElement.getBoundingClientRect().top;
+			}
+		}
+	}
+
+	// Calculate grid pattern properties for SVG pattern-based rendering
+	const gridPattern = $derived(() => {
 		// Only show grid if zoomed in enough (when each pixel is at least 4 screen pixels)
-		if ($viewport.scale < 4) return gridLines;
+		if ($viewport.scale < 4) return null;
 
 		// Show every pixel when highly zoomed, every few pixels when less zoomed
 		const step = $viewport.scale >= 8 ? 1 : Math.max(1, Math.floor(10 / $viewport.scale));
+		const patternSize = step * $viewport.scale;
 
-		// Vertical lines - align to pixel boundaries
-		for (let x = 0; x <= field.width; x += step) {
-			const screenPos = fieldToScreen(x, 0);
-			const endPos = fieldToScreen(x, field.height);
+		return {
+			size: patternSize,
+			step,
+			// Calculate visible viewport bounds in field coordinates to limit pattern area
+			viewportBounds: {
+				minX: Math.max(0, Math.floor(-$viewport.x / $viewport.scale)),
+				minY: Math.max(0, Math.floor(-$viewport.y / $viewport.scale)),
+				maxX: Math.min(field.width, Math.ceil((-$viewport.x + window.innerWidth) / $viewport.scale)),
+				maxY: Math.min(field.height, Math.ceil((-$viewport.y + window.innerHeight) / $viewport.scale))
+			}
+		};
+	});
+
+	// Generate visible grid lines only (for fallback if SVG patterns don't work)
+	function generateVisibleGridLines() {
+		const gridLines: Array<{ x1: number; y1: number; x2: number; y2: number; key: string }> = [];
+		
+		if (!gridPattern) return gridLines;
+
+		const { step, viewportBounds } = gridPattern;
+
+		// Only generate lines that are visible in the current viewport
+		// Vertical lines
+		for (let x = Math.floor(viewportBounds.minX / step) * step; x <= viewportBounds.maxX; x += step) {
+			if (x < 0 || x > field.width) continue;
+			const screenPos = fieldToScreen(x, Math.max(0, viewportBounds.minY));
+			const endPos = fieldToScreen(x, Math.min(field.height, viewportBounds.maxY));
 			gridLines.push({
-				x1: Math.round(screenPos.x) + 0.5, // +0.5 for crisp 1px lines
+				x1: Math.round(screenPos.x) + 0.5,
 				y1: Math.round(screenPos.y),
 				x2: Math.round(endPos.x) + 0.5,
 				y2: Math.round(endPos.y),
@@ -115,13 +187,14 @@
 			});
 		}
 
-		// Horizontal lines - align to pixel boundaries
-		for (let y = 0; y <= field.height; y += step) {
-			const screenPos = fieldToScreen(0, y);
-			const endPos = fieldToScreen(field.width, y);
+		// Horizontal lines
+		for (let y = Math.floor(viewportBounds.minY / step) * step; y <= viewportBounds.maxY; y += step) {
+			if (y < 0 || y > field.height) continue;
+			const screenPos = fieldToScreen(Math.max(0, viewportBounds.minX), y);
+			const endPos = fieldToScreen(Math.min(field.width, viewportBounds.maxX), y);
 			gridLines.push({
 				x1: Math.round(screenPos.x),
-				y1: Math.round(screenPos.y) + 0.5, // +0.5 for crisp 1px lines
+				y1: Math.round(screenPos.y) + 0.5,
 				x2: Math.round(endPos.x),
 				y2: Math.round(endPos.y) + 0.5,
 				key: `h-${y}`
@@ -131,8 +204,8 @@
 		return gridLines;
 	}
 
-	// Get visible grid lines
-	const gridLines = $derived(showGrid ? generateGridLines() : []);
+	// Get visible grid lines (only render what's visible)
+	const gridLines = $derived(showGrid && !gridPattern ? generateVisibleGridLines() : []);
 
 	// Get hover preview position
 	const hoverPreviewPosition = $derived(() => {
@@ -187,7 +260,10 @@
 	onmousemove={handleMouseMove}
 	onmouseenter={handleMouseEnter}
 	onmouseleave={handleMouseLeave}
-	role="presentation"
+	onkeydown={handleKeyDown}
+	role="application"
+	aria-label="Field visualization with {field.width}x{field.height} pixels - use arrow keys to navigate, Enter to place emitter"
+	tabindex="0"
 >
 	<!-- Field bounds outline -->
 	<div
@@ -204,23 +280,63 @@
 	></div>
 
 	<!-- Grid overlay -->
-	{#if showGrid && gridLines.length > 0}
-		<svg
-			class="grid-overlay"
-			style="
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				opacity: 0.4;
-			"
-			shape-rendering="crispEdges"
-		>
-			{#each gridLines as line (line.key)}
-				<line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#000" stroke-width="1" />
-			{/each}
-		</svg>
+	{#if showGrid}
+		{#if gridPattern}
+			<!-- Use SVG pattern for better performance -->
+			<svg
+				class="grid-overlay"
+				style="
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					opacity: 0.4;
+				"
+				shape-rendering="crispEdges"
+			>
+				<defs>
+					<pattern
+						id="grid-pattern"
+						width={gridPattern.size}
+						height={gridPattern.size}
+						patternUnits="userSpaceOnUse"
+					>
+						<path
+							d="M {gridPattern.size} 0 L 0 0 0 {gridPattern.size}"
+							fill="none"
+							stroke="#000"
+							stroke-width="1"
+						/>
+					</pattern>
+				</defs>
+				<rect
+					x={fieldBounds().x}
+					y={fieldBounds().y}
+					width={fieldBounds().width}
+					height={fieldBounds().height}
+					fill="url(#grid-pattern)"
+				/>
+			</svg>
+		{:else if gridLines.length > 0}
+			<!-- Fallback to individual lines -->
+			<svg
+				class="grid-overlay"
+				style="
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					opacity: 0.4;
+				"
+				shape-rendering="crispEdges"
+			>
+				{#each gridLines as line (line.key)}
+					<line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#000" stroke-width="1" />
+				{/each}
+			</svg>
+		{/if}
 	{/if}
 
 	<!-- Hover preview -->

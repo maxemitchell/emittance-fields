@@ -5,7 +5,8 @@
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { Field } from '$lib/db/fields';
 	import type { Database } from '../../database.types';
-	import { emitterStore } from '$lib/stores/emitters';
+	import type { Emitter } from '$lib/db/emitters';
+	import { setStoreContext, getEmitterStore } from '$lib/stores/context';
 	import { subscribeToEmitters } from '$lib/db/emitters';
 	import FieldCanvas from './canvas/FieldCanvas.svelte';
 	import CanvasOverlay from './canvas/CanvasOverlay.svelte';
@@ -15,9 +16,10 @@
 	interface Props {
 		field: Field;
 		userRole: 'owner' | 'editor' | 'viewer' | 'public';
+		initialEmitters?: Emitter[];
 	}
 
-	let { field, userRole }: Props = $props();
+	let { field, userRole, initialEmitters = [] }: Props = $props();
 
 	// Get supabase client from page data (inherited from layout)
 	const supabase = $derived($page.data.supabase as SupabaseClient<Database>);
@@ -26,6 +28,9 @@
 	let error = $state<string | null>(null);
 	let realtimeUnsubscribe: (() => void) | null = null;
 
+	// Set up store context and get store instances
+	const { emitterStore } = setStoreContext(supabase);
+	
 	// Derived state
 	const canEdit = $derived(userRole === 'owner' || userRole === 'editor');
 
@@ -62,10 +67,26 @@
 		subscribers.forEach((fn) => fn(simpleViewport));
 	}
 
-	// Update viewport and notify subscribers
+	// Throttle viewport updates for better performance
+	let rafId: number | null = null;
+	let pendingViewport: { x: number; y: number; scale: number } | null = null;
+
+	function flushViewportUpdate() {
+		if (pendingViewport) {
+			simpleViewport = pendingViewport;
+			subscribers.forEach((fn) => fn(simpleViewport));
+			pendingViewport = null;
+		}
+		rafId = null;
+	}
+
+	// Update viewport and notify subscribers (throttled)
 	function updateViewport(newViewport: { x: number; y: number; scale: number }) {
-		simpleViewport = newViewport;
-		subscribers.forEach((fn) => fn(simpleViewport));
+		pendingViewport = newViewport;
+		
+		if (rafId === null) {
+			rafId = requestAnimationFrame(flushViewportUpdate);
+		}
 	}
 
 	const viewportWrapped = {
@@ -94,10 +115,12 @@
 	// Initialize stores and real-time connection
 	onMount(async () => {
 		try {
-			// Initialize stores
-			// userRoleStore is already set in page.server.ts
-			emitterStore.init(supabase);
-			await emitterStore.loadEmitters(field.id);
+			// Hydrate store with server data if available, otherwise load
+			if (initialEmitters.length > 0) {
+				emitterStore.hydrate(initialEmitters, field.id);
+			} else {
+				await emitterStore.loadEmitters(field.id);
+			}
 
 			// Set up simple viewport to center the field
 			// Wait a frame for the canvas element to be available
@@ -106,7 +129,7 @@
 			}, 0);
 
 			// Connect to real-time updates
-			const subscription = subscribeToEmitters(supabase, field.id);
+			const subscription = subscribeToEmitters(supabase, field.id, emitterStore);
 			realtimeUnsubscribe = subscription.unsubscribe;
 
 			isLoading = false;
@@ -122,6 +145,12 @@
 		if (realtimeUnsubscribe) {
 			realtimeUnsubscribe();
 		}
+		// Cancel any pending RAF updates
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+		}
+		// Clean up store to prevent memory leaks
+		emitterStore.destroy();
 	});
 
 	// Handle zoom controls

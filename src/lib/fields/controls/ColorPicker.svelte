@@ -11,6 +11,15 @@
 
 	let isOpen = $state(false);
 	let hexInput = $state(currentColor);
+	let selectedIndex = $state(0);
+	let focusedGrid = $state<'recent' | 'palette'>('recent');
+
+	// Prop reactivity sync
+	$effect(() => {
+		if (currentColor !== hexInput && !isOpen) {
+			hexInput = currentColor;
+		}
+	});
 
 	// Recent colors - could be stored in localStorage
 	const recentColors = $state([
@@ -84,6 +93,79 @@
 			isOpen = false;
 		}
 	}
+
+	// Handle keyboard navigation in color picker
+	function handleKeyDown(event: KeyboardEvent) {
+		if (!isOpen) return;
+
+		switch (event.key) {
+			case 'Escape':
+				isOpen = false;
+				event.preventDefault();
+				break;
+			case 'Tab':
+				// Allow normal tab behavior
+				break;
+			case 'ArrowLeft':
+				navigateGrid(-1, 0);
+				event.preventDefault();
+				break;
+			case 'ArrowRight':
+				navigateGrid(1, 0);
+				event.preventDefault();
+				break;
+			case 'ArrowUp':
+				navigateGrid(0, -1);
+				event.preventDefault();
+				break;
+			case 'ArrowDown':
+				navigateGrid(0, 1);
+				event.preventDefault();
+				break;
+			case 'Enter':
+			case ' ':
+				selectCurrentColor();
+				event.preventDefault();
+				break;
+		}
+	}
+
+	function navigateGrid(deltaX: number, deltaY: number) {
+		const colors = focusedGrid === 'recent' ? recentColors : colorPalette.flat();
+		const cols = focusedGrid === 'recent' ? 8 : 8;
+		
+		const currentRow = Math.floor(selectedIndex / cols);
+		const currentCol = selectedIndex % cols;
+		
+		let newRow = currentRow + deltaY;
+		let newCol = currentCol + deltaX;
+		
+		// Switch between grids when moving up/down at boundaries
+		if (focusedGrid === 'recent' && newRow < 0) {
+			focusedGrid = 'palette';
+			newRow = colorPalette.length - 1;
+			selectedIndex = newRow * 8 + newCol;
+		} else if (focusedGrid === 'palette' && newRow >= colorPalette.length) {
+			focusedGrid = 'recent';
+			newRow = 0;
+			selectedIndex = newCol;
+		} else {
+			// Clamp to bounds
+			newRow = Math.max(0, Math.min(newRow, Math.floor(colors.length / cols)));
+			newCol = Math.max(0, Math.min(newCol, cols - 1));
+			selectedIndex = newRow * cols + newCol;
+		}
+		
+		// Ensure index is within bounds
+		selectedIndex = Math.max(0, Math.min(selectedIndex, colors.length - 1));
+	}
+
+	function selectCurrentColor() {
+		const colors = focusedGrid === 'recent' ? recentColors : colorPalette.flat();
+		if (selectedIndex < colors.length) {
+			selectColor(colors[selectedIndex]);
+		}
+	}
 </script>
 
 <svelte:window on:click={handleClickOutside} />
@@ -106,6 +188,8 @@
 			class="absolute right-0 bottom-12 z-50 w-64 rounded-lg border bg-white p-4 shadow-lg"
 			role="dialog"
 			aria-label="Color picker"
+			tabindex="0"
+			onkeydown={handleKeyDown}
 		>
 			<!-- Hex input -->
 			<div class="mb-4">
@@ -129,14 +213,16 @@
 			<!-- Recent colors -->
 			<div class="mb-4">
 				<p class="mb-2 text-sm font-medium text-gray-700">Recent Colors</p>
-				<div class="flex flex-wrap gap-2">
-					{#each recentColors as color (color)}
+				<div class="flex flex-wrap gap-2" role="listbox" aria-label="Recent colors">
+					{#each recentColors as color, index (color)}
 						<button
 							type="button"
-							class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+							class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid === 'recent' && selectedIndex === index ? 'ring-2 ring-blue-500' : ''}"
 							style="background-color: {color};"
 							onclick={() => selectColor(color)}
 							aria-label="Select {color}"
+							role="option"
+							aria-selected={focusedGrid === 'recent' && selectedIndex === index}
 						></button>
 					{/each}
 				</div>
@@ -145,16 +231,19 @@
 			<!-- Color palette -->
 			<div>
 				<p class="mb-2 text-sm font-medium text-gray-700">Color Palette</p>
-				<div class="space-y-2">
+				<div class="space-y-2" role="listbox" aria-label="Color palette">
 					{#each colorPalette as row, rowIndex (rowIndex)}
 						<div class="flex gap-2">
-							{#each row as color (color)}
+							{#each row as color, colIndex (color)}
+								{@const paletteIndex = rowIndex * 8 + colIndex}
 								<button
 									type="button"
-									class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+									class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid === 'palette' && selectedIndex === paletteIndex ? 'ring-2 ring-blue-500' : ''}"
 									style="background-color: {color};"
 									onclick={() => selectColor(color)}
 									aria-label="Select {color}"
+									role="option"
+									aria-selected={focusedGrid === 'palette' && selectedIndex === paletteIndex}
 								></button>
 							{/each}
 						</div>

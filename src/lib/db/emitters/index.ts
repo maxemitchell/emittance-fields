@@ -1,6 +1,6 @@
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import type { Database } from '../../../database.types';
-import { emitterStore } from '$lib/stores/emitters';
+import type { EmitterStoreInstance } from '$lib/stores/factories';
 
 export interface RealtimeSubscription {
 	channel: RealtimeChannel;
@@ -87,6 +87,7 @@ export const removeEmitter = async (
 export function subscribeToEmitters(
 	supabase: SupabaseClient<Database>,
 	fieldId: string,
+	emitterStore: EmitterStoreInstance,
 	options: RealtimeOptions = {}
 ): RealtimeSubscription {
 	const channel = supabase
