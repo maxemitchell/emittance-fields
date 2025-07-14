@@ -42,7 +42,9 @@
 	const canEdit = $derived(userRole === 'owner' || userRole === 'editor');
 
 	// Create derived stores that match canvas component expectations
-	const emittersMapStore = $derived(emitterStore ? derived(emitterStore, (state) => state.emitters) : null);
+	const emittersMapStore = $derived(
+		emitterStore ? derived(emitterStore, (state) => state.emitters) : null
+	);
 
 	// Create a simple viewport store that uses translation offsets
 	let simpleViewport = $state({ x: 0, y: 0, scale: 1 });
@@ -242,22 +244,22 @@
 					{field}
 					emitters={emittersMapStore}
 					viewport={viewportWrapped}
-				{canEdit}
-				{selectedColor}
-				onEmitterPlace={(x, y, color) => {
-					if (!canEdit || !emitterStore) return;
+					{canEdit}
+					{selectedColor}
+					onEmitterPlace={(x, y, color) => {
+						if (!canEdit || !emitterStore) return;
 
-					// Ensure coordinates are within field bounds
-					const clampedX = Math.max(0, Math.min(field.width - 1, Math.round(x)));
-					const clampedY = Math.max(1, Math.min(field.height, Math.round(y))); // y must be > 0
+						// Ensure coordinates are within field bounds
+						const clampedX = Math.max(0, Math.min(field.width - 1, Math.round(x)));
+						const clampedY = Math.max(1, Math.min(field.height, Math.round(y))); // y must be > 0
 
-					emitterStore.addEmitter({
-						field_id: field.id,
-						x: clampedX,
-						y: clampedY,
-						color
-					});
-				}}
+						emitterStore.addEmitter({
+							field_id: field.id,
+							x: clampedX,
+							y: clampedY,
+							color
+						});
+					}}
 				/>
 			{/if}
 
