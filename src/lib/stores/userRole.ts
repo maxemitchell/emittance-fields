@@ -98,10 +98,10 @@ export function createUserRoleStore(supabase: SupabaseClient<Database>): UserRol
 				role = 'owner';
 			} else if (hasEditorAccess) {
 				role = 'editor';
-			} else if (hasViewAccess) {
-				role = 'viewer';
 			} else if (isPublic) {
 				role = 'public';
+			} else if (hasViewAccess) {
+				role = 'viewer';
 			}
 
 			store.update((state) => ({
