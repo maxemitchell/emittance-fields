@@ -10,10 +10,10 @@ const USER_ROLE_STORE_KEY = 'userRoleStore';
 export function setStoreContext(supabase: SupabaseClient<Database>) {
 	const emitterStore = createEmitterStore(supabase);
 	const userRoleStore = createUserRoleStore(supabase);
-	
+
 	setContext(EMITTER_STORE_KEY, emitterStore);
 	setContext(USER_ROLE_STORE_KEY, userRoleStore);
-	
+
 	return { emitterStore, userRoleStore };
 }
 

@@ -6,7 +6,7 @@
 	import type { Field } from '$lib/db/fields';
 	import type { Database } from '../../database.types';
 	import type { Emitter } from '$lib/db/emitters';
-	import { setStoreContext, getEmitterStore } from '$lib/stores/context';
+	import { setStoreContext } from '$lib/stores/context';
 	import { subscribeToEmitters } from '$lib/db/emitters';
 	import FieldCanvas from './canvas/FieldCanvas.svelte';
 	import CanvasOverlay from './canvas/CanvasOverlay.svelte';
@@ -30,7 +30,7 @@
 
 	// Set up store context and get store instances
 	const { emitterStore } = setStoreContext(supabase);
-	
+
 	// Derived state
 	const canEdit = $derived(userRole === 'owner' || userRole === 'editor');
 
@@ -83,7 +83,7 @@
 	// Update viewport and notify subscribers (throttled)
 	function updateViewport(newViewport: { x: number; y: number; scale: number }) {
 		pendingViewport = newViewport;
-		
+
 		if (rafId === null) {
 			rafId = requestAnimationFrame(flushViewportUpdate);
 		}

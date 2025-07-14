@@ -121,9 +121,11 @@
 				// Place emitter at current cursor position
 				if (cursorPosition) {
 					// Dispatch custom event for placing emitter
-					overlayElement.dispatchEvent(new CustomEvent('placeEmitter', {
-						detail: { x: cursorPosition.x, y: cursorPosition.y, color: selectedColor }
-					}));
+					overlayElement.dispatchEvent(
+						new CustomEvent('placeEmitter', {
+							detail: { x: cursorPosition.x, y: cursorPosition.y, color: selectedColor }
+						})
+					);
 				}
 				event.preventDefault();
 				break;
@@ -158,8 +160,14 @@
 			viewportBounds: {
 				minX: Math.max(0, Math.floor(-$viewport.x / $viewport.scale)),
 				minY: Math.max(0, Math.floor(-$viewport.y / $viewport.scale)),
-				maxX: Math.min(field.width, Math.ceil((-$viewport.x + window.innerWidth) / $viewport.scale)),
-				maxY: Math.min(field.height, Math.ceil((-$viewport.y + window.innerHeight) / $viewport.scale))
+				maxX: Math.min(
+					field.width,
+					Math.ceil((-$viewport.x + window.innerWidth) / $viewport.scale)
+				),
+				maxY: Math.min(
+					field.height,
+					Math.ceil((-$viewport.y + window.innerHeight) / $viewport.scale)
+				)
 			}
 		};
 	});
@@ -167,14 +175,18 @@
 	// Generate visible grid lines only (for fallback if SVG patterns don't work)
 	function generateVisibleGridLines() {
 		const gridLines: Array<{ x1: number; y1: number; x2: number; y2: number; key: string }> = [];
-		
+
 		if (!gridPattern) return gridLines;
 
 		const { step, viewportBounds } = gridPattern;
 
 		// Only generate lines that are visible in the current viewport
 		// Vertical lines
-		for (let x = Math.floor(viewportBounds.minX / step) * step; x <= viewportBounds.maxX; x += step) {
+		for (
+			let x = Math.floor(viewportBounds.minX / step) * step;
+			x <= viewportBounds.maxX;
+			x += step
+		) {
 			if (x < 0 || x > field.width) continue;
 			const screenPos = fieldToScreen(x, Math.max(0, viewportBounds.minY));
 			const endPos = fieldToScreen(x, Math.min(field.height, viewportBounds.maxY));
@@ -188,7 +200,11 @@
 		}
 
 		// Horizontal lines
-		for (let y = Math.floor(viewportBounds.minY / step) * step; y <= viewportBounds.maxY; y += step) {
+		for (
+			let y = Math.floor(viewportBounds.minY / step) * step;
+			y <= viewportBounds.maxY;
+			y += step
+		) {
 			if (y < 0 || y > field.height) continue;
 			const screenPos = fieldToScreen(Math.max(0, viewportBounds.minX), y);
 			const endPos = fieldToScreen(Math.min(field.width, viewportBounds.maxX), y);
@@ -333,7 +349,14 @@
 				shape-rendering="crispEdges"
 			>
 				{#each gridLines as line (line.key)}
-					<line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#000" stroke-width="1" />
+					<line
+						x1={line.x1}
+						y1={line.y1}
+						x2={line.x2}
+						y2={line.y2}
+						stroke="#000"
+						stroke-width="1"
+					/>
 				{/each}
 			</svg>
 		{/if}

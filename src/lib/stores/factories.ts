@@ -1,12 +1,12 @@
-import { writable, derived, type Writable, type Readable } from 'svelte/store';
+import { writable, derived, type Readable } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Enums } from '../../database.types';
 import type { Emitter, EmitterInsert, EmitterUpdate } from '../db/emitters/index.js';
 import {
 	getEmittersForField,
-	addEmitter,
-	updateEmitter,
-	removeEmitter
+	addEmitter as dbAddEmitter,
+	updateEmitter as dbUpdateEmitter,
+	removeEmitter as dbRemoveEmitter
 } from '../db/emitters/index.js';
 
 // Emitter Store Types
@@ -25,7 +25,7 @@ export interface OptimisticUpdate {
 }
 
 export interface EmitterStoreInstance {
-	subscribe: (this: void, run: (value: EmitterStoreState) => void) => (() => void);
+	subscribe: (this: void, run: (value: EmitterStoreState) => void) => () => void;
 	loadEmitters: (fieldId: string) => Promise<void>;
 	hydrate: (emitters: Emitter[], fieldId: string) => void;
 	addEmitter: (data: EmitterInsert) => Promise<void>;
@@ -57,14 +57,18 @@ export interface UserPermissions {
 }
 
 export interface UserRoleStoreInstance {
-	subscribe: (this: void, run: (value: UserRoleState) => void) => (() => void);
+	subscribe: (this: void, run: (value: UserRoleState) => void) => () => void;
 	permissions: Readable<UserPermissions>;
 	loadUserRole: (fieldId: string) => Promise<void>;
 	checkFieldAccess: (fieldId: string) => Promise<boolean>;
 	checkFieldEditAccess: (fieldId: string) => Promise<boolean>;
 	checkIsFieldOwner: (fieldId: string) => Promise<boolean>;
 	checkIsFieldPublic: (fieldId: string) => Promise<boolean>;
-	handleCollaboratorChange: (fieldId: string, userId: string, role: Enums<'collaborator_role'> | null) => void;
+	handleCollaboratorChange: (
+		fieldId: string,
+		userId: string,
+		role: Enums<'collaborator_role'> | null
+	) => void;
 	clearError: () => void;
 	reset: () => void;
 	destroy: () => void;
@@ -81,9 +85,9 @@ export function createEmitterStore(supabase: SupabaseClient<Database>): EmitterS
 
 	const pendingUpdates = new Map<string, OptimisticUpdate>();
 	let currentState: EmitterStoreState;
-	
+
 	// Keep a live subscription to avoid memory leaks
-	const unsubscribe = store.subscribe(state => {
+	const unsubscribe = store.subscribe((state) => {
 		currentState = state;
 	});
 
@@ -154,7 +158,7 @@ export function createEmitterStore(supabase: SupabaseClient<Database>): EmitterS
 		pendingUpdates.set(tempId, optimisticUpdate);
 
 		try {
-			const newEmitter = await addEmitter(supabase, data);
+			const newEmitter = await dbAddEmitter(supabase, data);
 
 			// Replace temp emitter with real emitter
 			store.update((state) => {
@@ -217,7 +221,7 @@ export function createEmitterStore(supabase: SupabaseClient<Database>): EmitterS
 		pendingUpdates.set(id, optimisticUpdate);
 
 		try {
-			const updatedEmitter = await updateEmitter(supabase, id, data);
+			const updatedEmitter = await dbUpdateEmitter(supabase, id, data);
 
 			if (updatedEmitter) {
 				store.update((state) => {
@@ -273,7 +277,7 @@ export function createEmitterStore(supabase: SupabaseClient<Database>): EmitterS
 		pendingUpdates.set(id, optimisticUpdate);
 
 		try {
-			await removeEmitter(supabase, id);
+			await dbRemoveEmitter(supabase, id);
 			pendingUpdates.delete(id);
 		} catch (error) {
 			// Rollback optimistic update
@@ -384,9 +388,9 @@ export function createUserRoleStore(supabase: SupabaseClient<Database>): UserRol
 	});
 
 	let currentState: UserRoleState;
-	
+
 	// Keep a live subscription to avoid memory leaks
-	const unsubscribe = store.subscribe(state => {
+	const unsubscribe = store.subscribe((state) => {
 		currentState = state;
 	});
 
@@ -429,7 +433,7 @@ export function createUserRoleStore(supabase: SupabaseClient<Database>): UserRol
 			if (viewError) throw viewError;
 
 			let role: 'owner' | 'editor' | 'viewer' | null = null;
-			
+
 			if (isOwner) {
 				role = 'owner';
 			} else if (hasEditorAccess) {

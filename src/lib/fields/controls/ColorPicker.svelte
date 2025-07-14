@@ -133,13 +133,13 @@
 	function navigateGrid(deltaX: number, deltaY: number) {
 		const colors = focusedGrid === 'recent' ? recentColors : colorPalette.flat();
 		const cols = focusedGrid === 'recent' ? 8 : 8;
-		
+
 		const currentRow = Math.floor(selectedIndex / cols);
 		const currentCol = selectedIndex % cols;
-		
+
 		let newRow = currentRow + deltaY;
 		let newCol = currentCol + deltaX;
-		
+
 		// Switch between grids when moving up/down at boundaries
 		if (focusedGrid === 'recent' && newRow < 0) {
 			focusedGrid = 'palette';
@@ -155,7 +155,7 @@
 			newCol = Math.max(0, Math.min(newCol, cols - 1));
 			selectedIndex = newRow * cols + newCol;
 		}
-		
+
 		// Ensure index is within bounds
 		selectedIndex = Math.max(0, Math.min(selectedIndex, colors.length - 1));
 	}
@@ -217,7 +217,10 @@
 					{#each recentColors as color, index (color)}
 						<button
 							type="button"
-							class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid === 'recent' && selectedIndex === index ? 'ring-2 ring-blue-500' : ''}"
+							class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid ===
+								'recent' && selectedIndex === index
+								? 'ring-2 ring-blue-500'
+								: ''}"
 							style="background-color: {color};"
 							onclick={() => selectColor(color)}
 							aria-label="Select {color}"
@@ -238,7 +241,10 @@
 								{@const paletteIndex = rowIndex * 8 + colIndex}
 								<button
 									type="button"
-									class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid === 'palette' && selectedIndex === paletteIndex ? 'ring-2 ring-blue-500' : ''}"
+									class="h-8 w-8 rounded border border-gray-300 transition-all hover:scale-110 focus:ring-2 focus:ring-blue-500 focus:outline-none {focusedGrid ===
+										'palette' && selectedIndex === paletteIndex
+										? 'ring-2 ring-blue-500'
+										: ''}"
 									style="background-color: {color};"
 									onclick={() => selectColor(color)}
 									aria-label="Select {color}"
