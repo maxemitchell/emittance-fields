@@ -2,32 +2,32 @@
 
 ## Project Overview
 
-Emittance Fields is a collaborative visual system where users can place "emitters" in a shared field - think r/place but with flow field simulation capabilities. The focus is on implementing a robust authorization layer.
+Emittance Fields is a collaborative visual system where users can place "emitters" in a shared field, similar to r/place.
 
 ## Tech Stack
 
-- **Framework**: SvelteKit 2.22.0 with Svelte 5.0
-- **Styling**: Tailwind CSS 4.0
-- **Language**: TypeScript 5.0
-- **Build Tool**: Vite 7.0
+- **Framework**: SvelteKit 2 with Svelte 5
+- **Styling**: Tailwind CSS 4
+- **Language**: TypeScript 5
+- **Build Tool**: Vite 7
 - **Auth/Backend**: Supabase (authentication & database)
 - **Package Manager**: Bun
 - **Deployment**: Vercel with preview environments
-- **Testing**: Playwright (E2E)
-- **Linting**: ESLint 9.18 + Prettier
+- **Testing**: Playwright (E2E), pgTAP (database)
+- **Linting**: ESLint, Prettier, svelte-check
 
 ## Key Commands
 
 ```bash
 # Development
 bun run dev              # Start dev server
-bun run dev -- --open   # Start dev server and open browser
+bun run dev -- --open    # Start dev server and open browser
 
 # Quality Checks
+bun run format           # Format code with prettier
+bun run lint             # Run prettier and eslint
 bun run check            # Type checking with svelte-check
 bun run check:watch      # Type checking in watch mode
-bun run lint             # Run prettier and eslint
-bun run format           # Format code with prettier
 
 # Build & Deploy
 bun run build            # Production build
@@ -38,31 +38,18 @@ bun run test             # Run E2E tests (playwright)
 bun run test:e2e         # Explicit E2E test command
 ```
 
-## Core Concept
-
-The system is implementing a **barebones mode** only: emitters are static and defined by `{x, y, color}`—similar to pixel placement in r/place.
-
 ## Data Models
 
 - **Fields**: Canvas areas with dimensions, background, ownership
 - **Emitters**: Points that emit particles/pixels with visual state
 - **FieldCollaborators**: User permissions for field access
-- **Users**: Basic user accounts
-
-## Authorization Focus
-
-This is a challenge project centered on authorization design. The auth layer should handle:
-
-- User permissions on fields (owner, collaborator roles)
-- Emitter placement/editing rights
-- Field visibility (public/private)
-- Collaborative access control
 
 ## Project Structure
 
 - `src/routes/` - SvelteKit pages and API routes
 - `src/lib/` - Shared components and utilities
 - `docs/` - Project documentation and requirements
+- `supabase/` - Supabase database schema, migrations, and pgTAP tests
 
 ## Development Notes
 
@@ -79,7 +66,9 @@ This is a challenge project centered on authorization design. The auth layer sho
 ### Key Commands
 
 ```bash
+supabase stop                                 # Stop supabase before generating migrations
 supabase db diff -f <migration_name>          # Generate migration from schema changes
+supabase start                                # Start supabase locally
 supabase migration up                         # Apply pending migrations locally
 supabase db push                              # Deploy to remote database
 supabase db dump > supabase/schemas/prod.sql  # Pull production schema
@@ -100,13 +89,6 @@ supabase db reset --version <timestamp>       # Rollback for development
 
 **Pattern**: Use pgTAP for comprehensive database testing, focusing on authorization layer validation.
 
-### Testing Strategy
-
-1. **Schema Tests**: Validate table structure, constraints, indexes
-2. **RLS Policy Tests**: Test authorization rules for all user scenarios
-3. **Data Integrity Tests**: Verify constraints and business rules
-4. **Performance Tests**: Validate query efficiency and index usage
-
 ### Key Commands
 
 ```bash
@@ -114,10 +96,3 @@ supabase test new <test_name>              # Create new test file
 supabase test db                           # Run all database tests
 supabase test db --debug                   # Run tests with verbose output
 ```
-
-### Testing Focus Areas
-
-- **Fields**: Owner/public/collaborator access patterns
-- **Emitters**: Creation/editing permissions based on field access
-- **Field Collaborators**: Role-based access (viewer vs editor)
-- **Cross-table relationships**: Cascading deletes and referential integrity
