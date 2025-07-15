@@ -10,7 +10,9 @@ create table "public"."fields" (
   "is_public" boolean default false not null,
   "owner_id" uuid not null references auth.users(id) on delete cascade,
   "created_at" timestamp with time zone default now() not null,
-  "updated_at" timestamp with time zone default now() not null
+  "updated_at" timestamp with time zone default now() not null,
+  -- Ensure field names are unique per owner
+  unique (owner_id, name)
 );
 
 -- Enable RLS on fields

@@ -54,6 +54,6 @@
 	</div>
 </header>
 
-<main class="container mx-auto mt-8 px-4">
+<main class="container m-8 mx-auto px-4">
 	{@render children()}
 </main>
