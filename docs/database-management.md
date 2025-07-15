@@ -42,11 +42,13 @@ supabase db dump > supabase/schemas/prod.sql
 ### Development Cycle
 
 1. Edit schema files in `supabase/schemas/`
-2. Generate migration: `supabase db diff -f <migration_name>`
-3. Review generated migration
-4. Apply locally: `supabase migration up`
-5. Test changes
-6. Deploy: `supabase db push`
+2. Stop local database: `supabase stop`
+3. Generate migration: `supabase db diff -f <migration_name>`
+4. Review generated migration
+5. Start local database: `supabase start`
+6. Apply locally: `supabase migration up`
+7. Test changes
+8. Deploy: `supabase db push`
 
 ### Schema Organization
 
@@ -99,16 +101,18 @@ For these cases, use traditional migrations in `supabase/migrations/`.
 ```
 supabase/
 ├── schemas/           # Declarative schema definitions
-│   ├── 01_users.sql
+│   ├── 01_extensions.sql
 │   ├── 02_fields.sql
-│   └── 03_emitters.sql
+│   ├── 03_field_collaborators.sql
+│   └── 04_emitters.sql
+│   ├── 05_functions.sql
+│   └── 06_policies.sql
 ├── migrations/        # Generated and manual migrations
-│   ├── 20241001_*.sql
-│   └── 20241002_*.sql
-└── config.toml       # Custom schema ordering (optional)
+│   ├── 20250714_*.sql
+│   └── 20250715_*.sql
 ```
 
-## Migration Commands Reference
+## Supabase Commands Reference
 
 ```bash
 # Stop database before running diff

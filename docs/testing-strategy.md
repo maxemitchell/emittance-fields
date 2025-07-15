@@ -9,9 +9,7 @@ Emittance Fields uses pgTAP for comprehensive database testing, with a focus on 
 Since this is an authorization-focused project, our testing strategy prioritizes:
 
 1. **RLS Policy Validation**: Ensuring proper access control across all user scenarios
-2. **Schema Integrity**: Validating table structure, constraints, and relationships
-3. **Business Rules**: Testing constraint logic and data validation
-4. **Performance**: Ensuring indexes and queries perform efficiently
+2. **Business Rules**: Testing constraint logic and data validation
 
 ## Test Organization
 
@@ -19,43 +17,12 @@ Tests are organized by domain and functionality:
 
 ```
 supabase/tests/
-├── 01_schema_tests.sql           # Table structure and constraints
-├── 02_fields_rls_tests.sql       # Field access control tests
-├── 03_collaborators_rls_tests.sql # Collaboration permissions
-├── 04_emitters_rls_tests.sql     # Emitter management permissions
-└── 05_integration_tests.sql      # Cross-table scenarios
+├── 00_setup_tests_hooks.sql           # Setup tests hooks
+├── 01_fields_rls_tests.sql            # Field access control tests
+├── 02_collaborators_rls_tests.sql     # Collaboration permissions
+├── 03_emitters_rls_tests.sql          # Emitter management permissions
+└── 04_integration_tests.sql           # Cross-table scenarios
 ```
-
-## Test Categories
-
-### 1. Schema Tests
-
-- Table existence and structure
-- Column definitions and constraints
-- Index presence and performance
-- Trigger functionality
-- Foreign key relationships
-
-### 2. RLS Policy Tests
-
-- **Anonymous users**: Public field access only
-- **Field owners**: Full CRUD on owned fields and emitters
-- **Editors**: Create/update/delete emitters, view collaborators
-- **Viewers**: Read-only access to fields and emitters
-- **Unauthorized users**: Proper access denial
-
-### 3. Data Integrity Tests
-
-- Constraint validation (dimensions, colors, coordinates)
-- Cascade deletion behavior
-- Unique constraint enforcement
-- Business rule validation
-
-### 4. Integration Tests
-
-- Complex permission scenarios
-- Multi-user collaboration workflows
-- Cross-table relationship validation
 
 ## User Personas for Testing
 
@@ -113,8 +80,7 @@ Each test file includes:
 
 ```sql
 -- Switch to specific user context
-set local role authenticated;
-set local request.jwt.claim.sub = 'user-uuid';
+select tests.authenticate_as('user@example.com');
 
 -- Test expected behavior
 select results_eq(
@@ -122,15 +88,6 @@ select results_eq(
     ARRAY[expected_count::bigint],
     'User should see correct number of fields'
 );
-```
-
-### Schema Testing Pattern
-
-```sql
--- Test table structure
-select has_table('public', 'fields', 'Fields table exists');
-select has_column('public', 'fields', 'name', 'Fields has name column');
-select col_not_null('public', 'fields', 'name', 'Name cannot be null');
 ```
 
 ## Coverage Goals
